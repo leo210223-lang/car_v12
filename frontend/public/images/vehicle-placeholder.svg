@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Vehicle placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f3f4f6"/>
+      <stop offset="100%" stop-color="#e5e7eb"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g fill="#9ca3af">
+    <rect x="170" y="290" width="460" height="130" rx="22"/>
+    <rect x="240" y="235" width="220" height="70" rx="18"/>
+    <circle cx="270" cy="445" r="38"/>
+    <circle cx="530" cy="445" r="38"/>
+  </g>
+  <text x="400" y="540" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#6b7280">
+    No Image
+  </text>
+</svg>

@@ -1,0 +1,981 @@
+{
+  "info": {
+    "name": "FaCai-B 車輛審核系統 API 測試集合",
+    "description": "完整的 API 端點測試集合，包括認證、審核、圖片上傳和代客建檔",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0",
+    "_lastUpdated": "2025-03-19"
+  },
+  "item": [
+    {
+      "name": "🔐 認證",
+      "item": [
+        {
+          "name": "管理員登錄",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Token is provided', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('token');",
+                  "  pm.environment.set('ADMIN_TOKEN', jsonData.data.token);",
+                  "});",
+                  "",
+                  "pm.test('User role is admin', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.user.role).to.equal('admin');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "普通用戶登錄",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Token is provided', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('token');",
+                  "  pm.environment.set('USER_TOKEN', jsonData.data.token);",
+                  "});",
+                  "",
+                  "pm.test('User role is user', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.user.role).to.equal('user');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user-a@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "無效密碼登錄 (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 待審核列表",
+      "item": [
+        {
+          "name": "獲取待審核車輛列表",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has data array', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('data');",
+                  "  pm.expect(jsonData.data.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.pagination).to.have.property('hasMore');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/pending?limit=20",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "pending"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "未認證訪問 (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/pending",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "pending"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "普通用戶訪問 (應拒絕)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "  pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/pending",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "pending"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🚗 車輛詳情",
+      "item": [
+        {
+          "name": "獲取車輛詳情",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains vehicle data', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.expect(jsonData.data).to.have.property('status');",
+                  "  pm.expect(jsonData.data).to.have.property('owner_dealer_id');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/detail",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "detail"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "無效的 UUID (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/invalid-uuid/detail",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "invalid-uuid", "detail"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "不存在的車輛 (應返回 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/550e8400-e29b-41d4-a716-999999999999/detail",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "550e8400-e29b-41d4-a716-999999999999", "detail"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "✅ 車輛核准",
+      "item": [
+        {
+          "name": "核准車輛",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Vehicle status is approved', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.status).to.equal('approved');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/approve",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "approve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "核准不存在的車輛 (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/550e8400-e29b-41d4-a716-999999999999/approve",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "550e8400-e29b-41d4-a716-999999999999", "approve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "普通用戶嘗試核准 (應拒絕)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "  pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/approve",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "approve"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "❌ 車輛拒絕",
+      "item": [
+        {
+          "name": "拒絕車輛（有有效原因）",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Vehicle status is rejected', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.status).to.equal('rejected');",
+                  "});",
+                  "",
+                  "pm.test('Rejection reason is saved', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.rejection_reason).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejection_reason\": \"車輛狀況不符合要求\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/reject",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "reject"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "拒絕不提供原因 (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejection_reason\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/reject",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "reject"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "拒絕空原因 (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejection_reason\": \"   \"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/reject",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "reject"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🖼️  圖片上傳",
+      "item": [
+        {
+          "name": "上傳單個圖片",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains images array', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('images');",
+                  "  pm.expect(jsonData.data.images).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "value": "",
+                  "description": "選擇圖片文件",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/images",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "images"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "上傳多個圖片",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Multiple images uploaded', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.images.length).to.be.above(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "value": "",
+                  "description": "選擇第一個圖片文件",
+                  "type": "file"
+                },
+                {
+                  "key": "images",
+                  "value": "",
+                  "description": "選擇第二個圖片文件",
+                  "type": "file"
+                },
+                {
+                  "key": "images",
+                  "value": "",
+                  "description": "選擇第三個圖片文件",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/{{VEHICLE_ID}}/images",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "{{VEHICLE_ID}}", "images"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👨‍💼 代客建檔",
+      "item": [
+        {
+          "name": "創建代客建檔車輛",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Vehicle created with correct data', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.expect(jsonData.data).to.have.property('status');",
+                  "  pm.expect(jsonData.data.owner_dealer_id).to.equal('a0000000-0000-0000-0000-000000000002');",
+                  "  pm.environment.set('PROXY_VEHICLE_ID', jsonData.data.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_dealer_id\": \"a0000000-0000-0000-0000-000000000002\",\n  \"brand_id\": \"550e8400-e29b-41d4-a716-333333333333\",\n  \"spec_id\": \"550e8400-e29b-41d4-a716-444444444444\",\n  \"model_id\": \"550e8400-e29b-41d4-a716-555555555555\",\n  \"year\": 2023,\n  \"listing_price\": 550000,\n  \"acquisition_cost\": 480000,\n  \"repair_cost\": 20000,\n  \"description\": \"代客建檔車輛測試\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/proxy",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "proxy"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "缺少必需字段 (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_dealer_id\": \"a0000000-0000-0000-0000-000000000002\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/proxy",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "proxy"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "非存在車主 (應失敗)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 404', function () {",
+                  "  pm.response.to.have.status.oneOf([400, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_dealer_id\": \"550e8400-e29b-41d4-a716-999999999999\",\n  \"brand_id\": \"550e8400-e29b-41d4-a716-333333333333\",\n  \"spec_id\": \"550e8400-e29b-41d4-a716-444444444444\",\n  \"model_id\": \"550e8400-e29b-41d4-a716-555555555555\",\n  \"year\": 2023,\n  \"listing_price\": 550000\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/vehicles/proxy",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "vehicles", "proxy"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 用戶車輛",
+      "item": [
+        {
+          "name": "獲取用戶車輛列表",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/vehicles",
+              "host": ["{{BASE_URL}}"],
+              "path": ["vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "提交車輛進行審核",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Vehicle created successfully', function () {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.expect(jsonData.data.status).to.equal('pending');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand_id\": \"550e8400-e29b-41d4-a716-333333333333\",\n  \"spec_id\": \"550e8400-e29b-41d4-a716-444444444444\",\n  \"model_id\": \"550e8400-e29b-41d4-a716-555555555555\",\n  \"year\": 2023,\n  \"listing_price\": 520000,\n  \"description\": \"一手車主，保養良好\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/vehicles",
+              "host": ["{{BASE_URL}}"],
+              "path": ["vehicles"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "ADMIN_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "USER_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "VEHICLE_ID",
+      "value": "b0000000-0000-0000-0000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "PROXY_VEHICLE_ID",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: car-v12-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install --production=false && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        value: https://ewnfshjptzkpbufjmmwy.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3bmZzaGpwdHprcGJ1ZmptbXd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDEwNzMsImV4cCI6MjA4OTU3NzA3M30.NFgofmyAW9sX5T-ox_8sWDuJc7j6PIY44oo6yBcqxPk
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://car-v12.vercel.app,http://localhost:3000
+      - key: REDIS_URL
+        value: ""
+    autoDeploy: true
+    branch: main
