@@ -79,7 +79,7 @@ export default function LoginPage() {
           }
         }
 
-        router.push('/find-car');
+        router.push('/all-cars');
       }
     } catch {
       setError('登入過程發生錯誤，請稍後再試');

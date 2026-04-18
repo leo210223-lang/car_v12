@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { VehicleDetail } from '@/components/vehicle/VehicleDetail';
+import { ExpensesSection, TradableSection } from '@/components/vehicle';
+import { CostEditSection } from '@/components/vehicle/CostEditSection';
 import { useVehicle, useVehicleActions } from '@/hooks/useVehicles';
 import { toast } from 'sonner';
 
@@ -208,8 +210,43 @@ export default function MyVehicleDetailPage() {
         </motion.div>
       )}
 
-      {/* 車輛詳情 */}
-      <VehicleDetail vehicle={vehicle} showCost />
+      {/* 車輛詳情（關掉成本區塊，改用下方可編輯的 CostEditSection） */}
+      <VehicleDetail vehicle={vehicle} showCost={false} />
+
+      {/* [v12] 私人成本紀錄（可編輯）— 收購成本 + 基礎整備費 */}
+      <div className="mt-4">
+        <CostEditSection
+          vehicleId={vehicleId}
+          initialAcquisitionCost={vehicle.acquisition_cost ?? null}
+          initialRepairCost={vehicle.repair_cost ?? null}
+          listingPrice={vehicle.listing_price ?? null}
+          onChanged={() => refresh()}
+        />
+      </div>
+
+      {/* [v12] 整備費細項做帳 — 所有狀態都可編輯 */}
+      <div className="mt-4">
+        <ExpensesSection
+          vehicleId={vehicleId}
+          baseRepairCost={vehicle.repair_cost ?? 0}
+        />
+      </div>
+
+      {/* [v12] 可盤設定 — 僅已上架的車輛可設定 */}
+      {vehicle.status === 'approved' ? (
+        <div className="mt-4">
+          <TradableSection
+            vehicleId={vehicleId}
+            initialIsTradable={vehicle.is_tradable ?? false}
+            initialTradePrice={vehicle.trade_price ?? null}
+            onChanged={() => refresh()}
+          />
+        </div>
+      ) : (
+        <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-4 text-center text-xs text-muted-foreground">
+          車輛需為「已上架」狀態才能設定可盤
+        </div>
+      )}
 
       {/* 底部操作列 */}
       <motion.div

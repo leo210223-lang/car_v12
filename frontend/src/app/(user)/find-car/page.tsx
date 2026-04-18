@@ -103,7 +103,7 @@ export default function FindCarPage() {
   }, []);
 
   return (
-    <div className="gold-texture cloud-pattern relative mx-auto w-full max-w-7xl rounded-2xl border border-amber-800/30 px-4 py-4 shadow-[0_10px_24px_rgba(120,76,12,0.2)] sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+    <div className="gold-texture cloud-pattern relative mx-auto max-w-lg rounded-2xl border border-amber-800/30 px-4 py-4 shadow-[0_10px_24px_rgba(120,76,12,0.2)]">
       <span className="font-calligraphy pointer-events-none absolute right-2 top-2 text-[7rem] leading-none text-black/5">
         順
       </span>

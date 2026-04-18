@@ -189,7 +189,7 @@ export default function VehicleDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <div className="mx-auto min-h-screen max-w-lg bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
       {/* 頂部導航 */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
