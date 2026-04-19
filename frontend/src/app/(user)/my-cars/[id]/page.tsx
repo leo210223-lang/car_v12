@@ -213,8 +213,8 @@ export default function MyVehicleDetailPage() {
         </motion.div>
       )}
 
-      {/* 車輛詳情（關掉成本區塊，改用下方可編輯的 CostEditSection） */}
-      <VehicleDetail vehicle={vehicle} showCost={false} />
+      {/* 車輛詳情（[v12.2] 車行自己看不需要車行資訊卡片；[v12.1] 關掉成本區塊，改用下方 CostEditSection） */}
+      <VehicleDetail vehicle={vehicle} showCost={false} showDealer={false} />
 
       {/* [v12.1] 私人成本紀錄（整合：收購成本 + 整備費細項） */}
       <div className="mt-4">

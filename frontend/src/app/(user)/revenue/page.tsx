@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -8,6 +9,9 @@ import {
   RefreshCcw,
   Clock,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -16,6 +20,7 @@ import { cn, formatDate } from '@/lib/utils';
 
 /**
  * [v12.1] 車行自己的營收紀錄頁
+ * [v12.2] 加入年月篩選（以 archived_at 為準）
  *   路徑：/revenue (car dealer)
  */
 
@@ -24,9 +29,59 @@ function formatAmount(n: number | null | undefined): string {
   return `$${n.toLocaleString('zh-TW')}`;
 }
 
+function currentYearMonth(): { year: number; month: number } {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
+/**
+ * 產出可選的「年」清單：當下年份往前 5 年
+ */
+function getYearOptions(nowYear: number): number[] {
+  return [0, 1, 2, 3, 4].map((i) => nowYear - i);
+}
+
+const MONTH_LABELS = [
+  '1 月', '2 月', '3 月', '4 月', '5 月', '6 月',
+  '7 月', '8 月', '9 月', '10 月', '11 月', '12 月',
+];
+
 export default function MyRevenuePage() {
   const router = useRouter();
-  const { records, summary, isLoading, refresh } = useMyRevenue();
+
+  // [v12.2] 篩選狀態：預設選當月
+  const [{ year, month }, setYm] = useState(currentYearMonth());
+  /** all = 不套日期 / month = 當前 year+month */
+  const [mode, setMode] = useState<'month' | 'all'>('month');
+
+  const filter = mode === 'month' ? { year, month } : {};
+  const { records, summary, isLoading, refresh } = useMyRevenue(filter);
+
+  const yearOptions = useMemo(() => {
+    const nowY = new Date().getFullYear();
+    return getYearOptions(nowY);
+  }, []);
+
+  const goPrevMonth = () => {
+    if (month === 1) {
+      setYm({ year: year - 1, month: 12 });
+    } else {
+      setYm({ year, month: month - 1 });
+    }
+  };
+
+  const goNextMonth = () => {
+    if (month === 12) {
+      setYm({ year: year + 1, month: 1 });
+    } else {
+      setYm({ year, month: month + 1 });
+    }
+  };
+
+  const isCurrentMonth = (() => {
+    const c = currentYearMonth();
+    return year === c.year && month === c.month;
+  })();
 
   return (
     <div className="mx-auto max-w-lg px-4 py-4 pb-24">
@@ -46,13 +101,105 @@ export default function MyRevenuePage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">營收紀錄</h1>
-              <p className="text-xs text-muted-foreground">下架 30 天自動結算</p>
+              <p className="text-xs text-muted-foreground">下架 30 天後自動結算</p>
             </div>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={() => refresh()}>
           <RefreshCcw className="h-4 w-4" />
         </Button>
+      </motion.div>
+
+      {/* [v12.2] 月份篩選器 */}
+      <motion.div
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-4 rounded-xl border border-border bg-card p-3"
+      >
+        {/* mode 切換：查當月 / 全部 */}
+        <div className="mb-3 flex gap-1">
+          <button
+            type="button"
+            onClick={() => setMode('month')}
+            className={cn(
+              'flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+              mode === 'month'
+                ? 'bg-primary-500 text-white'
+                : 'bg-muted text-muted-foreground hover:bg-muted/70'
+            )}
+          >
+            <Calendar className="mr-1 inline h-3 w-3" />
+            依月份
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('all')}
+            className={cn(
+              'flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+              mode === 'all'
+                ? 'bg-primary-500 text-white'
+                : 'bg-muted text-muted-foreground hover:bg-muted/70'
+            )}
+          >
+            全部
+          </button>
+        </div>
+
+        {/* 月份選擇 */}
+        {mode === 'month' && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={goPrevMonth}
+              className="rounded-md border border-border bg-white p-1.5 text-muted-foreground hover:bg-muted"
+              aria-label="上個月"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <div className="flex-1 flex items-center gap-1">
+              <select
+                value={year}
+                onChange={(e) => setYm({ year: Number(e.target.value), month })}
+                className="flex-1 rounded-md border border-border bg-white px-2 py-1.5 text-sm focus:border-primary-400 focus:outline-none"
+              >
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>
+                    {y} 年
+                  </option>
+                ))}
+              </select>
+              <select
+                value={month}
+                onChange={(e) => setYm({ year, month: Number(e.target.value) })}
+                className="flex-1 rounded-md border border-border bg-white px-2 py-1.5 text-sm focus:border-primary-400 focus:outline-none"
+              >
+                {MONTH_LABELS.map((label, i) => (
+                  <option key={i} value={i + 1}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="button"
+              onClick={goNextMonth}
+              className="rounded-md border border-border bg-white p-1.5 text-muted-foreground hover:bg-muted"
+              aria-label="下個月"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {mode === 'month' && (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            {isCurrentMonth
+              ? '⏳ 當月資料會隨下架→結算（下架 30 天後）陸續補齊'
+              : '✅ 此區間顯示所有已結算的營收紀錄'}
+          </p>
+        )}
       </motion.div>
 
       {/* 摘要卡片 */}
@@ -83,9 +230,13 @@ export default function MyRevenuePage() {
       ) : records.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-primary-200 py-16">
           <Receipt className="h-12 w-12 text-primary-200" />
-          <p className="mt-3 text-sm text-muted-foreground">尚無營收紀錄</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            車輛下架超過 30 天後會自動結算
+          <p className="mt-3 text-sm text-muted-foreground">
+            {mode === 'month'
+              ? `${year} 年 ${month} 月尚無營收紀錄`
+              : '尚無營收紀錄'}
+          </p>
+          <p className="mt-1 px-8 text-center text-[11px] text-muted-foreground">
+            車輛下架超過 30 天自動結算並計入營收
           </p>
         </div>
       ) : (

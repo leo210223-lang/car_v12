@@ -5,6 +5,7 @@ import { api, ApiResponse } from '@/lib/api';
 
 /**
  * [v12.1] 車行自己的營收紀錄 Hook
+ * [v12.2] 支援月份篩選（year + month），以 archived_at 為基準
  */
 
 export interface MyRevenueRecord {
@@ -43,10 +44,38 @@ interface MyRevenueResponse {
   summary: MyRevenueSummary;
 }
 
-export function useMyRevenue() {
+export interface MyRevenueFilter {
+  /** 西元年，例如 2026 */
+  year?: number;
+  /** 月份 1..12 */
+  month?: number;
+}
+
+export function useMyRevenue(filter: MyRevenueFilter = {}) {
+  const { year, month } = filter;
+  const hasMonth =
+    year != null &&
+    month != null &&
+    Number.isInteger(year) &&
+    Number.isInteger(month) &&
+    month >= 1 &&
+    month <= 12;
+
+  // SWR key：加入篩選條件，切換時會自動重取
+  const key = hasMonth
+    ? `/revenue/mine?year=${year}&month=${month}`
+    : '/revenue/mine';
+
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<MyRevenueResponse>>(
-    '/revenue/mine',
-    async (url: string) => api.get<MyRevenueResponse>(url),
+    key,
+    async () => {
+      const params: Record<string, string | number | boolean | undefined> = {};
+      if (hasMonth) {
+        params.year = year;
+        params.month = month;
+      }
+      return api.get<MyRevenueResponse>('/revenue/mine', params);
+    },
     { revalidateOnFocus: true }
   );
 

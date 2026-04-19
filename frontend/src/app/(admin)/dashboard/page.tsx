@@ -16,6 +16,13 @@ import {
 import { api } from '@/lib/api';
 import { cn, formatDealerName, parseVehicleImages } from '@/lib/utils';
 
+/**
+ * [v12.2] stats 與 pending 兩個查詢互不影響；
+ *   - stats 抓不到 → 數字顯示 0 並提示「統計載入中」
+ *   - pending 抓不到 → 待審核列表顯示空 + 錯誤提示
+ *   - 不會整頁因為其中之一失敗而變紅
+ */
+
 export interface DashboardStats {
   pendingAuditCount: number;
   totalVehicles: number;
@@ -29,7 +36,9 @@ interface StatCardProps {
   title: string;
   value?: number | null;
   icon: typeof ClipboardCheck;
+  seal: string;
   href?: string;
+  loading?: boolean;
 }
 
 interface PendingVehicle {
@@ -59,7 +68,7 @@ function formatSafeDate(dateValue?: string | null): string {
 /**
  * 統計卡片
  */
-function StatCard({ title, value, icon: Icon, href }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, seal, href, loading }: StatCardProps) {
   const content = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -73,13 +82,21 @@ function StatCard({ title, value, icon: Icon, href }: StatCardProps) {
       <div className="flex items-start justify-between">
         <div>
           <p className="font-calligraphy text-lg tracking-[0.15em] text-amber-950">{title}</p>
-          <p className="mt-2 text-4xl font-bold tracking-wide text-[#684310]">{formatSafeNumber(value)}</p>
+          <p className="mt-2 text-4xl font-bold tracking-wide text-[#684310]">
+            {loading ? (
+              <span className="inline-block h-9 w-16 animate-pulse rounded bg-amber-900/10" />
+            ) : (
+              formatSafeNumber(value)
+            )}
+          </p>
         </div>
         <div className="rounded-xl border border-amber-800/40 bg-amber-100/65 p-3 text-amber-900">
           <Icon className="h-6 w-6" />
         </div>
       </div>
-
+      <div className="mt-2 inline-flex items-center rounded border border-red-900/55 bg-red-700/35 px-2 py-0.5 text-[11px] tracking-[0.22em] text-red-950">
+        {seal}
+      </div>
       {href && (
         <div className="font-calligraphy mt-4 flex items-center text-base text-amber-900">
           <span>查看詳情</span>
@@ -109,7 +126,7 @@ export default function DashboardPage() {
       }
       return result.data;
     },
-    { revalidateOnFocus: false, refreshInterval: 0, keepPreviousData: true }
+    { revalidateOnFocus: true, refreshInterval: 60000, shouldRetryOnError: true, errorRetryCount: 2 }
   );
 
   const {
@@ -128,28 +145,10 @@ export default function DashboardPage() {
       }
       return result.data;
     },
-    { revalidateOnFocus: true, refreshInterval: 60000 }
+    { revalidateOnFocus: true, refreshInterval: 60000, shouldRetryOnError: true, errorRetryCount: 2 }
   );
 
-  if (statsLoading || pendingLoading) {
-    return (
-      <div className="flex h-[calc(100vh-3rem)] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-500" />
-          <span className="text-sm text-muted-foreground">載入中...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (statsError || pendingError) {
-    return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-destructive">
-        讀取儀表板資料失敗，請重新整理頁面。
-      </div>
-    );
-  }
-
+  // [v12.2] 不再因為某一支 API 失敗就整頁錯誤；每個區塊自己處理
   const safeStats: DashboardStats = {
     pendingAuditCount: Number(stats?.pendingAuditCount || 0),
     totalVehicles: Number(stats?.totalVehicles || 0),
@@ -169,10 +168,10 @@ export default function DashboardPage() {
         <div>
           <h1 className="font-calligraphy text-4xl text-amber-950">歡迎回來！</h1>
           <p className="font-calligraphy mt-1 text-lg text-amber-900/90">
-          以下為今日平台概況
+            歡迎回來！以下為今日平台概況
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2">
           <Link
             href="/audit"
             className="inline-flex items-center gap-2 rounded-lg border border-amber-800/40 bg-black/80 px-4 py-2 text-sm font-medium text-amber-100 shadow-sm transition-colors hover:bg-black"
@@ -190,29 +189,44 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* [v12.2] stats 錯誤提示條（不擋畫面） */}
+      {statsError && !statsLoading && (
+        <div className="rounded-lg border border-amber-700/40 bg-amber-100/60 px-4 py-2 text-sm text-amber-900">
+          ⚠️ 統計數據暫時無法取得，稍後會自動重試（數字可能顯示為 0）
+        </div>
+      )}
+
       {/* 統計卡片 */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="待審核車輛"
           value={safeStats.pendingAuditCount}
           icon={ClipboardCheck}
+          seal="審"
           href="/audit"
+          loading={statsLoading}
         />
         <StatCard
-          title="已上架車輛"
+          title="上架車輛總數"
           value={safeStats.totalVehicles}
           icon={Car}
+          seal="車"
+          loading={statsLoading}
         />
         <StatCard
           title="調做需求"
           value={safeStats.activeTradeRequests}
           icon={RefreshCw}
+          seal="調"
+          loading={statsLoading}
         />
         <StatCard
           title="會員總數"
           value={safeStats.totalUsers}
           icon={Users}
+          seal="會"
           href="/users"
+          loading={statsLoading}
         />
       </div>
 
@@ -281,7 +295,15 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {pendingVehicles.length > 0 ? (
+        {pendingLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500/40 border-t-amber-700" />
+          </div>
+        ) : pendingError ? (
+          <div className="rounded-lg border border-amber-700/40 bg-amber-100/60 px-4 py-3 text-sm text-amber-900">
+            ⚠️ 待審核列表暫時無法取得，稍後會自動重試
+          </div>
+        ) : pendingVehicles.length > 0 ? (
           <div className="space-y-3">
             {pendingVehicles.map((vehicle) => {
               const image = parseVehicleImages(vehicle.images)[0];

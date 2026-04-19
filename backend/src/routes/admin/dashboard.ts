@@ -4,8 +4,13 @@
  *
  * Admin 儀表板統計 API 端點
  *
+ * [v12.1]
+ *   - 上架中車輛 = status='approved'
+ *   - 會員總數 = status='active'
+ *
  * [v12.2]
- *   - 儀表板總數改為抓取所有資料，避免只顯示 active / approved 造成數量偏少
+ *   - 每個 count 查詢獨立 try/catch，單一查詢失敗時回退為 0，不會拖垮整個 API
+ *   - 避免 Promise.all 因任一 query error 就整包 reject
  */
 
 import { Router, Request, Response } from 'express';
@@ -15,6 +20,26 @@ import { success, errors } from '../../utils/response';
 
 const router = Router();
 
+/**
+ * 安全地執行一個 count 查詢，任何錯誤都回傳 0（並記 log）
+ */
+async function safeCount(
+  label: string,
+  runner: () => Promise<{ count: number | null; error: unknown }>
+): Promise<number> {
+  try {
+    const { count, error } = await runner();
+    if (error) {
+      console.error(`[Dashboard] ${label} count error:`, error);
+      return 0;
+    }
+    return typeof count === 'number' ? count : 0;
+  } catch (err) {
+    console.error(`[Dashboard] ${label} count exception:`, err);
+    return 0;
+  }
+}
+
 // ============================================================================
 // GET /api/admin/dashboard/stats - 儀表板統計數據
 // ============================================================================
@@ -23,44 +48,57 @@ router.get(
   '/stats',
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      // 並行查詢所有統計數據
-      const [
-        { count: pendingVehicles },
-        { count: totalVehicles },
-        { count: activeTradeRequests },
-        { count: totalUsers },
-      ] = await Promise.all([
-        // 待審核車輛
-        supabaseAdmin
-          .from('vehicles')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'pending'),
+      // 各查詢獨立容錯：不用 Promise.all (怕 one fail all fail)
+      // 用 Promise.allSettled 後再逐一抽值也可以，這裡用獨立 safeCount 更清楚
+      const nowIso = new Date().toISOString();
 
-        // [v12.2] 車輛總數 = 所有車輛
-        supabaseAdmin
-          .from('vehicles')
-          .select('id', { count: 'exact', head: true }),
+      const [pendingVehicles, totalVehicles, activeTradeRequests, totalUsers] =
+        await Promise.all([
+          // 待審核車輛
+          safeCount('pendingVehicles', async () => {
+            const result = await supabaseAdmin
+              .from('vehicles')
+              .select('id', { count: 'exact', head: true })
+              .eq('status', 'pending');
+            return { count: result.count, error: result.error };
+          }),
 
-        // 活躍調做需求
-        supabaseAdmin
-          .from('trade_requests')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'approved')
-          .eq('is_active', true)
-          .gt('expires_at', new Date().toISOString()),
+          // 上架中車輛 = approved
+          safeCount('totalVehicles(approved)', async () => {
+            const result = await supabaseAdmin
+              .from('vehicles')
+              .select('id', { count: 'exact', head: true })
+              .eq('status', 'approved');
+            return { count: result.count, error: result.error };
+          }),
 
-        // [v12.2] 會員總數 = 所有會員
-        supabaseAdmin
-          .from('users')
-          .select('id', { count: 'exact', head: true }),
-      ]);
+          // 活躍調做需求
+          safeCount('activeTradeRequests', async () => {
+            const result = await supabaseAdmin
+              .from('trade_requests')
+              .select('id', { count: 'exact', head: true })
+              .eq('status', 'approved')
+              .eq('is_active', true)
+              .gt('expires_at', nowIso);
+            return { count: result.count, error: result.error };
+          }),
+
+          // 會員總數 = active
+          safeCount('totalUsers(active)', async () => {
+            const result = await supabaseAdmin
+              .from('users')
+              .select('id', { count: 'exact', head: true })
+              .eq('status', 'active');
+            return { count: result.count, error: result.error };
+          }),
+        ]);
 
       return success(res, {
         data: {
-          pendingAuditCount: pendingVehicles ?? 0,
-          totalVehicles: totalVehicles ?? 0,
-          activeTradeRequests: activeTradeRequests ?? 0,
-          totalUsers: totalUsers ?? 0,
+          pendingAuditCount: pendingVehicles,
+          totalVehicles,
+          activeTradeRequests,
+          totalUsers,
         },
       });
     } catch (error) {

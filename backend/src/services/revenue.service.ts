@@ -130,11 +130,14 @@ export const revenueService = {
 
   /**
    * 車行讀取自己的營收
+   * [v12.2] 加入日期區間篩選（以 archived_at 為基準 — 實際下架月份）
    */
   async listByOwner(
     ownerId: string,
     limit = 20,
-    cursor?: string
+    cursor?: string,
+    dateFrom?: string, // ISO 日期 (含) 例如 '2026-10-01T00:00:00.000Z'
+    dateTo?: string    // ISO 日期 (不含) 例如 '2026-11-01T00:00:00.000Z'
   ): Promise<
     ServiceResult<{
       records: RevenueRecord[];
@@ -148,17 +151,25 @@ export const revenueService = {
         .from('revenue_records')
         .select('*')
         .eq('owner_dealer_id', ownerId)
-        .order('settled_at', { ascending: false })
+        .order('archived_at', { ascending: false })
         .limit(limit + 1);
+
+      // [v12.2] 日期區間（archived_at 為準）
+      if (dateFrom) {
+        queryBuilder = queryBuilder.gte('archived_at', dateFrom);
+      }
+      if (dateTo) {
+        queryBuilder = queryBuilder.lt('archived_at', dateTo);
+      }
 
       if (cursor) {
         const { data: cursorRow } = await supabaseAdmin
           .from('revenue_records')
-          .select('settled_at')
+          .select('archived_at')
           .eq('id', cursor)
           .single();
         if (cursorRow) {
-          queryBuilder = queryBuilder.lt('settled_at', cursorRow.settled_at);
+          queryBuilder = queryBuilder.lt('archived_at', cursorRow.archived_at);
         }
       }
 
@@ -173,16 +184,20 @@ export const revenueService = {
       const records = hasMore ? rows.slice(0, limit) : rows;
       const nextCursor = hasMore ? records[records.length - 1]?.id : null;
 
-      // 加總（摘要）
-      const { data: allForOwner, error: sumErr } = await supabaseAdmin
+      // [v12.2] 摘要也依相同日期區間計算
+      let summaryQuery = supabaseAdmin
         .from('revenue_records')
         .select('profit, listing_price')
         .eq('owner_dealer_id', ownerId);
+      if (dateFrom) summaryQuery = summaryQuery.gte('archived_at', dateFrom);
+      if (dateTo) summaryQuery = summaryQuery.lt('archived_at', dateTo);
+
+      const { data: allForOwner, error: sumErr } = await summaryQuery;
 
       let summary = { total_profit: 0, total_sales: 0, count: 0 };
       if (!sumErr && allForOwner) {
-        summary = allForOwner.reduce(
-          (acc, r: any) => ({
+        summary = (allForOwner as Array<{ profit: number | null; listing_price: number | null }>).reduce(
+          (acc, r) => ({
             total_profit: acc.total_profit + (r.profit ?? 0),
             total_sales: acc.total_sales + (r.listing_price ?? 0),
             count: acc.count + 1,

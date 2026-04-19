@@ -10,7 +10,6 @@ import {
   Building2,
   Phone,
   Clock,
-  DollarSign,
   FileText,
 } from 'lucide-react';
 import { ImageGallery, VehicleStatusBadge } from '@/components/vehicle';
@@ -96,6 +95,12 @@ interface VehicleDetailProps {
   vehicle: Vehicle;
   /** 是否顯示成本（僅擁有者） */
   showCost?: boolean;
+  /**
+   * [v12.2] 是否顯示「車行資訊」卡片
+   * - 預設 true（尋車、admin 詳情頁用）
+   * - 我的車詳情頁請傳 false（車主自己不需要看到自己的聯絡資訊）
+   */
+  showDealer?: boolean;
   /** 額外樣式 */
   className?: string;
 }
@@ -103,7 +108,12 @@ interface VehicleDetailProps {
 /**
  * 車輛詳情元件 - 完整資訊展示
  */
-export function VehicleDetail({ vehicle, showCost = false, className }: VehicleDetailProps) {
+export function VehicleDetail({
+  vehicle,
+  showCost = false,
+  showDealer = true,
+  className,
+}: VehicleDetailProps) {
   const galleryImages = parseVehicleImages(vehicle.images);
   const dealerCompanyName =
     vehicle.owner?.company_name ??
@@ -166,8 +176,8 @@ export function VehicleDetail({ vehicle, showCost = false, className }: VehicleD
         </div>
       </motion.div>
 
-      {/* 車行資訊 */}
-      {hasDealerContact && (
+      {/* 車行資訊 — [v12.2] 只有 showDealer=true 才渲染 */}
+      {showDealer && hasDealerContact && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
