@@ -139,16 +139,23 @@ export default function FindCarPage() {
           />
         </div>
         <Button
-          variant={showFilters ? 'secondary' : 'outline'}
-          size="icon"
-          onClick={() => setShowFilters(!showFilters)}
-          className="relative shrink-0 rounded-xl border-amber-700/40 bg-amber-50 text-amber-900 shadow-sm hover:border-amber-800 hover:bg-amber-100 data-[pressed]:bg-amber-200"
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          {hasFilters && !showFilters && (
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500 ring-2 ring-background" />
-          )}
-        </Button>
+  variant={showFilters ? 'secondary' : 'outline'}
+  size="icon"
+  onClick={() => setShowFilters(!showFilters)}
+  className="relative shrink-0 rounded-xl border-amber-700/40 bg-amber-50 text-amber-900 shadow-sm hover:border-amber-800 hover:bg-amber-100"
+>
+  <span
+    className={`text-lg transition-transform ${
+      showFilters ? 'rotate-180' : ''
+    }`}
+  >
+    ▼
+  </span>
+
+  {hasFilters && !showFilters && (
+    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary-500 ring-2 ring-background" />
+  )}
+</Button>
       </div>
 
       {/* 篩選面板 */}

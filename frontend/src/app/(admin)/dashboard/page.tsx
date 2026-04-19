@@ -29,7 +29,6 @@ interface StatCardProps {
   title: string;
   value?: number | null;
   icon: typeof ClipboardCheck;
-  seal: string;
   href?: string;
 }
 
@@ -80,9 +79,7 @@ function StatCard({ title, value, icon: Icon, seal, href }: StatCardProps) {
           <Icon className="h-6 w-6" />
         </div>
       </div>
-      <div className="mt-2 inline-flex items-center rounded border border-red-900/55 bg-red-700/35 px-2 py-0.5 text-[11px] tracking-[0.22em] text-red-950">
-        {seal}
-      </div>
+
       {href && (
         <div className="font-calligraphy mt-4 flex items-center text-base text-amber-900">
           <span>查看詳情</span>
@@ -112,7 +109,7 @@ export default function DashboardPage() {
       }
       return result.data;
     },
-    { revalidateOnFocus: true, refreshInterval: 60000 }
+    { revalidateOnFocus: false, refreshInterval: 0, keepPreviousData: true }
   );
 
   const {
@@ -199,26 +196,22 @@ export default function DashboardPage() {
           title="待審核車輛"
           value={safeStats.pendingAuditCount}
           icon={ClipboardCheck}
-          seal="審"
           href="/audit"
         />
         <StatCard
           title="已上架車輛"
           value={safeStats.totalVehicles}
           icon={Car}
-          seal="車"
         />
         <StatCard
           title="調做需求"
           value={safeStats.activeTradeRequests}
           icon={RefreshCw}
-          seal="調"
         />
         <StatCard
           title="會員總數"
           value={safeStats.totalUsers}
           icon={Users}
-          seal="會"
           href="/users"
         />
       </div>

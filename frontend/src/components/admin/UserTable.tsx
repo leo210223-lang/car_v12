@@ -121,8 +121,8 @@ export function UserTable({
 
   // 狀態篩選選項
   const statusOptions = [
-    { value: 'pending', label: '待審核' },
     { value: 'active', label: '正常會員' },
+    { value: 'pending', label: '待審核' },
     { value: 'suspended_rejected', label: '停權/退件' },
   ] as const;
 
