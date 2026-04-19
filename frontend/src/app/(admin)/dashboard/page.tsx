@@ -59,7 +59,7 @@ function formatSafeDate(dateValue?: string | null): string {
 /**
  * 統計卡片
  */
-function StatCard({ title, value, icon: Icon, seal, href }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, href }: StatCardProps) {
   const content = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
