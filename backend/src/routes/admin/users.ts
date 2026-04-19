@@ -7,6 +7,7 @@
 
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '../../config/supabase';
 import { userService } from '../../services/user.service';
 import { asyncHandler } from '../../middleware';
 import {
@@ -49,6 +50,43 @@ router.get(
         nextCursor: result.data!.nextCursor,
         hasMore: result.data!.hasMore,
         total: result.data!.total,
+      },
+    });
+  })
+);
+
+
+// ============================================================================
+// GET /api/admin/users/stats - 會員統計
+// ============================================================================
+
+router.get(
+  '/stats',
+  asyncHandler(async (_req: Request, res: Response) => {
+    const [
+      { count: totalUsers },
+      { count: activeUsers },
+      { count: pendingUsers },
+      { count: suspendedUsers },
+      { count: rejectedUsers },
+      { count: totalVehicles },
+    ] = await Promise.all([
+      supabaseAdmin.from('users').select('id', { count: 'exact', head: true }),
+      supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+      supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('status', 'suspended'),
+      supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
+      supabaseAdmin.from('vehicles').select('id', { count: 'exact', head: true }),
+    ]);
+
+    return success(res, {
+      data: {
+        totalUsers: totalUsers ?? 0,
+        activeUsers: activeUsers ?? 0,
+        pendingUsers: pendingUsers ?? 0,
+        suspendedUsers: suspendedUsers ?? 0,
+        rejectedUsers: rejectedUsers ?? 0,
+        totalVehicles: totalVehicles ?? 0,
       },
     });
   })

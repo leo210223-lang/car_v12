@@ -98,6 +98,45 @@ export function useUsers(filters: UserFilters = {}) {
   };
 }
 
+
+export interface UserStats {
+  totalUsers: number;
+  activeUsers: number;
+  pendingUsers: number;
+  suspendedUsers: number;
+  rejectedUsers: number;
+  totalVehicles: number;
+}
+
+export function useUserStats() {
+  const { data, error, isLoading, mutate } = useSWR(
+    '/admin/users/stats',
+    async (): Promise<UserStats> => {
+      const response = await apiClient.request<UserStats>('/admin/users/stats', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || '取得會員統計失敗');
+      }
+
+      return response.data;
+    },
+    {
+      revalidateOnFocus: true,
+      revalidateIfStale: true,
+    }
+  );
+
+  return {
+    stats: data,
+    isLoading,
+    error,
+    refresh: mutate,
+  };
+}
+
 // ============================================================================
 // 單一會員詳情 Hook
 // ============================================================================

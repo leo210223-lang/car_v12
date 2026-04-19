@@ -9,7 +9,7 @@
 
 import { useState, useCallback } from 'react';
 import { Users, UserPlus } from 'lucide-react';
-import { useUsers, useUserActions, type UserListItem } from '@/hooks/useUsers';
+import { useUsers, useUserActions, useUserStats, type UserListItem } from '@/hooks/useUsers';
 import { UserTable, SuspendDialog } from '@/components/admin';
 import { useDebounce } from '@/hooks';
 import { toast } from 'sonner';
@@ -49,6 +49,8 @@ export default function AdminUsersPage() {
     limit: 20,
   });
   
+  const { stats, isLoading: isStatsLoading } = useUserStats();
+
   // 會員操作
   const { approveUser, rejectUser, suspendUser, reactivateUser, deleteUser, isSubmitting } = useUserActions();
 
@@ -146,23 +148,35 @@ export default function AdminUsersPage() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">會員管理</h1>
             <p className="text-sm text-muted-foreground">
-              共 {total} 位會員
+              共 {isStatsLoading ? total : (stats?.totalUsers ?? total)} 位會員
             </p>
           </div>
         </div>
 
         {/* 統計卡片 */}
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2">
+            <p className="text-xs text-amber-700">會員總數</p>
+            <p className="text-xl font-bold text-amber-800">
+              {stats?.totalUsers ?? total}
+            </p>
+          </div>
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2">
+            <p className="text-xs text-blue-600">車輛總數</p>
+            <p className="text-xl font-bold text-blue-700">
+              {stats?.totalVehicles ?? 0}
+            </p>
+          </div>
           <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2">
-            <p className="text-xs text-green-600">正常</p>
+            <p className="text-xs text-green-600">正常會員</p>
             <p className="text-xl font-bold text-green-700">
-              {users.filter(u => u.status === 'active').length}
+              {stats?.activeUsers ?? 0}
             </p>
           </div>
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2">
-            <p className="text-xs text-red-600">停權</p>
+            <p className="text-xs text-red-600">停權會員</p>
             <p className="text-xl font-bold text-red-700">
-              {users.filter(u => u.status === 'suspended').length}
+              {stats?.suspendedUsers ?? 0}
             </p>
           </div>
         </div>

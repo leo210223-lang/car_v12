@@ -140,10 +140,10 @@ export default function FindCarPage() {
           />
         </div>
         <Button
-          variant={showFilters ? 'default' : 'outline'}
+          variant={showFilters ? 'secondary' : 'outline'}
           size="icon"
           onClick={() => setShowFilters(!showFilters)}
-          className="relative shrink-0"
+          className="relative shrink-0 rounded-xl border-amber-700/40 bg-amber-50 text-amber-900 shadow-sm hover:border-amber-800 hover:bg-amber-100 data-[pressed]:bg-amber-200"
         >
           <SlidersHorizontal className="h-4 w-4" />
           {hasFilters && !showFilters && (
@@ -169,7 +169,7 @@ export default function FindCarPage() {
                     variant="ghost"
                     size="sm"
                     onClick={handleClearAll}
-                    className="h-11 px-3 text-sm text-muted-foreground hover:text-foreground"
+                    className="h-11 rounded-lg px-3 text-sm text-amber-700 hover:bg-amber-50 hover:text-amber-900"
                   >
                     <X className="mr-1 h-3 w-3" />
                     清除全部
@@ -194,11 +194,11 @@ export default function FindCarPage() {
           animate={{ opacity: 1, y: 0 }}
           className="relative z-10 mb-4"
         >
-          <div className="flex items-center justify-between rounded-lg bg-primary-50 px-3 py-2 text-sm">
+          <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm shadow-sm">
             <span className="text-primary-700">{filterSummary}</span>
             <button
               onClick={handleClearAll}
-              className="ml-2 inline-flex h-11 w-11 items-center justify-center rounded-md text-primary-500 hover:bg-primary-100 hover:text-primary-600"
+              className="ml-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-amber-700 hover:bg-amber-100 hover:text-amber-900"
             >
               <X className="h-4 w-4" />
             </button>

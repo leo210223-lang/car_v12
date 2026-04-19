@@ -4,9 +4,8 @@
  *
  * Admin 儀表板統計 API 端點
  *
- * [v12.1]
- *   - 上架中車輛 = status='approved'
- *   - 會員總數 = status='active'
+ * [v12.2]
+ *   - 儀表板總數改為抓取所有資料，避免只顯示 active / approved 造成數量偏少
  */
 
 import { Router, Request, Response } from 'express';
@@ -37,11 +36,10 @@ router.get(
           .select('id', { count: 'exact', head: true })
           .eq('status', 'pending'),
 
-        // [v12.1] 上架中車輛 = approved
+        // [v12.2] 車輛總數 = 所有車輛
         supabaseAdmin
           .from('vehicles')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'approved'),
+          .select('id', { count: 'exact', head: true }),
 
         // 活躍調做需求
         supabaseAdmin
@@ -51,11 +49,10 @@ router.get(
           .eq('is_active', true)
           .gt('expires_at', new Date().toISOString()),
 
-        // [v12.1] 會員總數 = 只算 active
+        // [v12.2] 會員總數 = 所有會員
         supabaseAdmin
           .from('users')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'active'),
+          .select('id', { count: 'exact', head: true }),
       ]);
 
       return success(res, {
