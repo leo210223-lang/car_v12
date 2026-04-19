@@ -5,6 +5,7 @@
  * 匯出所有 API 路由
  *
  * [v12 新增] /api/v1/manual-vehicle-requests
+ * [v12.1] /api/v1/revenue/mine 車行用
  */
 
 import { Router, Request, Response } from 'express';
@@ -19,6 +20,8 @@ import adminRoutes from './admin';
 import userRoutes from './users';
 // v12 新增
 import manualVehicleRequestRoutes from './manual-vehicle-requests';
+// v12.1 新增：車行自己的營收
+import revenueRoutes from './revenue';
 import {
   authenticate,
   requireAdmin,
@@ -59,6 +62,9 @@ export function createRoutes(): Router {
 
   // [v12 新增] 找不到車輛→代上傳（需認證，認證在 router 內做）
   v1Router.use('/manual-vehicle-requests', manualVehicleRequestRoutes);
+
+  // [v12.1] 車行自己的營收
+  v1Router.use('/revenue', revenueRoutes);
 
   // Admin 路由 (需要認證 + Admin 權限)
   const adminRouter = Router();

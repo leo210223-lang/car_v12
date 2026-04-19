@@ -8,5 +8,6 @@ export { VehicleForm } from './VehicleForm';
 export { VehicleList } from './VehicleList';
 export { VehicleStatusBadge } from './VehicleStatusBadge';
 // [v12]
-export { ExpensesSection } from './ExpensesSection';
 export { TradableSection } from './TradableSection';
+// [v12.1] 整備費細項已整合進 CostEditSection，ExpensesSection 不再 export
+// 若他處仍有引用 ExpensesSection，請改用 CostEditSection

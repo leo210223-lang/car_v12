@@ -4,7 +4,7 @@
   "description": "發財B平台 - Backend API Server (Express + TypeScript)",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node --esm src/index.ts",
+    "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint src/**/*.ts",

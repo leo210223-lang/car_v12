@@ -7,7 +7,7 @@ import { ArrowLeft, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { VehicleForm, VehicleFormData } from '@/components/vehicle/VehicleForm';
-import { ExpensesSection, TradableSection } from '@/components/vehicle';
+import { TradableSection } from '@/components/vehicle';
 import { useVehicle, useVehicleActions } from '@/hooks/useVehicles';
 import { toast } from 'sonner';
 
@@ -15,9 +15,11 @@ import { toast } from 'sonner';
  * 編輯車輛頁面
  *
  * [v12 變更]
- *  - 加入整備費細項區塊（ExpensesSection）
  *  - 加入可盤切換區塊（TradableSection）
  *  - 僅在非 rejected 狀態顯示（rejected 要先重新送審）
+ *
+ * [v12.1 變更]
+ *  - 移除 ExpensesSection（已整合進詳情頁的 CostEditSection）
  */
 export default function EditVehiclePage() {
   const params = useParams();
@@ -119,14 +121,6 @@ export default function EditVehiclePage() {
         submitLabel={vehicle.status === 'rejected' ? '修改後重新送審' : '儲存變更'}
         showCostFields
       />
-
-      {/* [v12] 整備費細項 */}
-      <div className="mt-4">
-        <ExpensesSection
-          vehicleId={vehicleId}
-          baseRepairCost={vehicle.repair_cost ?? 0}
-        />
-      </div>
 
       {/* [v12] 可盤設定（僅已上架可設定） */}
       {canSetTradable ? (

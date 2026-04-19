@@ -16,7 +16,6 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
-  TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -35,7 +34,8 @@ interface NavItem {
 /**
  * Admin 側邊導航欄
  *
- * [v12 新增] 代上傳申請、營收紀錄
+ * [v12 新增] 代上傳申請
+ * [v12.1 變更] 移除「營收紀錄」— 改為車行自己看，放在漢堡選單
  */
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -64,7 +64,6 @@ export function AdminSidebar() {
     { label: '調做需求', href: '/trades', icon: RefreshCw },
     { label: '所有車輛', href: '/vehicles', icon: Car },
     { label: '代上傳申請', href: '/manual-requests', icon: HelpCircle, badge: pendingManualCount },
-    { label: '營收紀錄', href: '/revenue', icon: TrendingUp },
     { label: '會員管理', href: '/users', icon: Users },
     { label: '字典管理', href: '/dictionary', icon: BookOpen },
   ];

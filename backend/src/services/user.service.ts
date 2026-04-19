@@ -600,6 +600,9 @@ export const userService = {
           status, 
           listing_price, 
           year,
+          color,
+          mileage,
+          images,
           brand:brands!vehicles_brand_id_fkey(name),
           spec:specs!vehicles_spec_id_fkey(name),
           model:models!vehicles_model_id_fkey(name)
@@ -616,7 +619,40 @@ export const userService = {
         };
       }
 
-      return { success: true, data };
+      // [v12.1] 扁平化 join 結果：brand.name → brand_name（前端讀的是扁平欄位）
+      const flatData = (data || []).map((v: {
+        id: string;
+        status: string;
+        listing_price: number | null;
+        year: number;
+        color: string | null;
+        mileage: number | null;
+        images: unknown;
+        brand: { name: string } | { name: string }[] | null;
+        spec: { name: string } | { name: string }[] | null;
+        model: { name: string } | { name: string }[] | null;
+      }) => {
+        // Supabase 有時回陣列有時回物件，兩種都處理
+        const getName = (rel: { name: string } | { name: string }[] | null): string | null => {
+          if (!rel) return null;
+          if (Array.isArray(rel)) return rel[0]?.name ?? null;
+          return rel.name ?? null;
+        };
+        return {
+          id: v.id,
+          status: v.status,
+          listing_price: v.listing_price,
+          year: v.year,
+          color: v.color,
+          mileage: v.mileage,
+          images: v.images,
+          brand_name: getName(v.brand),
+          spec_name: getName(v.spec),
+          model_name: getName(v.model),
+        };
+      });
+
+      return { success: true, data: flatData };
     } catch (err) {
       console.error('[UserService] GetUserVehicles exception:', err);
       return {

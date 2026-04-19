@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, Settings, LogOut, MoreVertical, ChevronRight } from 'lucide-react';
+import { Menu, X, User, LogOut, MoreVertical, ChevronRight, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -20,6 +20,8 @@ interface MenuItem {
 
 /**
  * 漢堡選單元件
+ *
+ * [v12.1] 新增「營收紀錄」(/revenue)
  */
 export function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,6 +41,7 @@ export function HamburgerMenu() {
 
   const menuItems: MenuItem[] = [
     { label: '個人資料', href: '/profile', icon: User },
+    { label: '營收紀錄', href: '/revenue', icon: TrendingUp },
     { label: '更多服務', href: '/services', icon: MoreVertical },
     { label: '登出', icon: LogOut, onClick: handleSignOut, destructive: true },
   ];
@@ -121,7 +124,7 @@ export function HamburgerMenu() {
               <nav className="p-1.5">
                 {menuItems.map((item, index) => {
                   const Icon = item.icon;
-                  
+
                   if (item.href) {
                     return (
                       <Link

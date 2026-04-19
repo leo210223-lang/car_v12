@@ -15,13 +15,16 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { VehicleDetail } from '@/components/vehicle/VehicleDetail';
-import { ExpensesSection, TradableSection } from '@/components/vehicle';
+import { TradableSection } from '@/components/vehicle';
 import { CostEditSection } from '@/components/vehicle/CostEditSection';
 import { useVehicle, useVehicleActions } from '@/hooks/useVehicles';
 import { toast } from 'sonner';
 
 /**
  * 我的車 - 車輛詳情頁
+ *
+ * [v12.1] 整備費細項已整合進 CostEditSection，
+ *         原本獨立的 ExpensesSection 不再使用
  */
 export default function MyVehicleDetailPage() {
   const params = useParams();
@@ -213,7 +216,7 @@ export default function MyVehicleDetailPage() {
       {/* 車輛詳情（關掉成本區塊，改用下方可編輯的 CostEditSection） */}
       <VehicleDetail vehicle={vehicle} showCost={false} />
 
-      {/* [v12] 私人成本紀錄（可編輯）— 收購成本 + 基礎整備費 */}
+      {/* [v12.1] 私人成本紀錄（整合：收購成本 + 整備費細項） */}
       <div className="mt-4">
         <CostEditSection
           vehicleId={vehicleId}
@@ -221,14 +224,6 @@ export default function MyVehicleDetailPage() {
           initialRepairCost={vehicle.repair_cost ?? null}
           listingPrice={vehicle.listing_price ?? null}
           onChanged={() => refresh()}
-        />
-      </div>
-
-      {/* [v12] 整備費細項做帳 — 所有狀態都可編輯 */}
-      <div className="mt-4">
-        <ExpensesSection
-          vehicleId={vehicleId}
-          baseRepairCost={vehicle.repair_cost ?? 0}
         />
       </div>
 
