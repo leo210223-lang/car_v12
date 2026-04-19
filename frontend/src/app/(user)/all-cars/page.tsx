@@ -131,7 +131,6 @@ export default function AllCarsPage() {
           </div>
           <div>
             <h1 className="font-calligraphy text-2xl text-amber-950">看所有車</h1>
-            <p className="text-xs text-amber-900/80">精簡清單 · 一目了然</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={handleRefresh}>

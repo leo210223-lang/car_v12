@@ -115,7 +115,6 @@ export default function FindCarPage() {
           </div>
           <div>
             <h1 className="font-calligraphy text-2xl text-amber-950 sm:text-3xl md:text-4xl">尋車</h1>
-            <p className="text-xs text-amber-900/80 sm:text-sm">二月財氣順 · 尋找您需要的車款</p>
           </div>
         </div>
         

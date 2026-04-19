@@ -166,7 +166,7 @@ export function HamburgerMenu() {
               {/* 底部版本資訊 */}
               <div className="border-t border-border px-3 py-2">
                 <p className="text-center text-[11px] text-muted-foreground">
-                  發財B平台 v1.0.0
+                  發財B
                 </p>
               </div>
             </motion.div>

@@ -50,7 +50,6 @@ export default async function UserLayout({ children }: UserLayoutProps) {
           <div className="flex min-w-0 items-center gap-2">
             <div className="rounded-md px-2 py-1">
               <span className="font-calligraphy block truncate text-xl font-bold text-amber-900">發財B</span>
-              <span className="hidden text-[11px] text-amber-900/70 sm:block">v1.0.0</span>
             </div>
           </div>
 

@@ -205,13 +205,7 @@ export function AdminSidebar() {
 
       {/* 底部登出按鈕 */}
       <div className="relative border-t border-amber-900/25 p-2">
-        {!isCollapsed && (
-          <div className="mb-3 rounded-lg bg-amber-100/35 p-3 text-amber-900/90">
-            <p className="font-calligraphy text-4xl leading-none">順</p>
-            <p className="mt-1 text-xs tracking-[0.18em]">二月財氣順</p>
-            <span className="mt-2 inline-block h-4 w-4 rotate-6 rounded-[2px] border border-red-900/60 bg-red-700/40" />
-          </div>
-        )}
+
         <button
           onClick={handleSignOut}
           className={cn(
