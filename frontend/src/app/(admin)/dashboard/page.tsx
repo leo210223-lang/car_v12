@@ -36,7 +36,6 @@ interface StatCardProps {
   title: string;
   value?: number | null;
   icon: typeof ClipboardCheck;
-  seal: string;
   href?: string;
   loading?: boolean;
 }
@@ -68,7 +67,7 @@ function formatSafeDate(dateValue?: string | null): string {
 /**
  * 統計卡片
  */
-function StatCard({ title, value, icon: Icon, seal, href, loading }: StatCardProps) {
+function StatCard({ title, value, icon: Icon,  href, loading }: StatCardProps) {
   const content = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -94,9 +93,7 @@ function StatCard({ title, value, icon: Icon, seal, href, loading }: StatCardPro
           <Icon className="h-6 w-6" />
         </div>
       </div>
-      <div className="mt-2 inline-flex items-center rounded border border-red-900/55 bg-red-700/35 px-2 py-0.5 text-[11px] tracking-[0.22em] text-red-950">
-        {seal}
-      </div>
+
       {href && (
         <div className="font-calligraphy mt-4 flex items-center text-base text-amber-900">
           <span>查看詳情</span>
@@ -202,7 +199,6 @@ export default function DashboardPage() {
           title="待審核車輛"
           value={safeStats.pendingAuditCount}
           icon={ClipboardCheck}
-          seal="審"
           href="/audit"
           loading={statsLoading}
         />
@@ -210,21 +206,18 @@ export default function DashboardPage() {
           title="上架車輛總數"
           value={safeStats.totalVehicles}
           icon={Car}
-          seal="車"
           loading={statsLoading}
         />
         <StatCard
           title="調做需求"
           value={safeStats.activeTradeRequests}
           icon={RefreshCw}
-          seal="調"
           loading={statsLoading}
         />
         <StatCard
           title="會員總數"
           value={safeStats.totalUsers}
           icon={Users}
-          seal="會"
           href="/users"
           loading={statsLoading}
         />
