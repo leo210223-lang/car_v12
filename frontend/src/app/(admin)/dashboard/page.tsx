@@ -165,7 +165,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="font-calligraphy text-4xl text-amber-950">歡迎回來！</h1>
           <p className="font-calligraphy mt-1 text-lg text-amber-900/90">
-            歡迎回來！以下為今日平台概況
+            今日平台概況
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
           loading={statsLoading}
         />
         <StatCard
-          title="上架車輛總數"
+          title="車輛總數"
           value={safeStats.totalVehicles}
           icon={Car}
           loading={statsLoading}

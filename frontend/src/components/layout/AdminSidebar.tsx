@@ -59,7 +59,7 @@ export function AdminSidebar() {
   const pendingManualCount = pendingManualRequests.length;
 
   const navItems: NavItem[] = [
-    { label: '儀表板', href: '/dashboard', icon: LayoutDashboard },
+    { label: '平台概況', href: '/dashboard', icon: LayoutDashboard },
     { label: '車輛審核', href: '/audit', icon: ClipboardCheck, badge: safePendingCount },
     { label: '調做需求', href: '/trades', icon: RefreshCw },
     { label: '所有車輛', href: '/vehicles', icon: Car },
