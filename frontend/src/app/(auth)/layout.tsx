@@ -36,7 +36,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo 區塊 */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gold-gradient drop-shadow-lg">
+          <h1 className="text-3xl font-bold text-white drop-shadow-lg">
             發財B
           </h1>
         </div>
